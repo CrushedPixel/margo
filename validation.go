@@ -10,28 +10,12 @@ type SpecificBinding interface {
 	getBinding() binding.Binding
 }
 
-const (
-	BodyParams = "margoBodyParams"
-	QueryParams = "margoQueryParams"
-)
-
-func pathParamsValidator(params interface{}) HandlerFunc {
-	return func(c *Context) Response {
-		if params == nil {
-			return nil
-		}
-
-		// TODO: bind path parameters (c.Params) into object
-		return nil
-	}
-}
-
 func bodyParamsValidator(params interface{}) HandlerFunc {
-	return paramsValidator(params, BodyParams, binding.JSON)
+	return paramsValidator(params, bodyParams, binding.JSON)
 }
 
 func queryParamsValidator(params interface{}) HandlerFunc {
-	return paramsValidator(params, QueryParams, binding.Query)
+	return paramsValidator(params, queryParams, binding.Query)
 }
 
 func paramsValidator(params interface{}, key string, deflt binding.Binding) HandlerFunc {
@@ -55,18 +39,16 @@ func paramsValidator(params interface{}, key string, deflt binding.Binding) Hand
 		if err := c.ShouldBindWith(instance, b); err != nil {
 			var errs []*MargoError
 
-			println("ERROR", err.Error())
-
 			// ValidationErrors is a map[string]*FieldError
 			if ve, ok := err.(validator.ValidationErrors); ok {
 				for _, val := range ve {
-					errs = append(errs, InvalidParamsError(&val.ActualTag))
+					errs = append(errs, InvalidParamsError(&val.Name, &val.ActualTag))
 				}
 			} else {
-				errs = append(errs, InvalidParamsError(nil))
+				errs = append(errs, InvalidParamsError(nil, nil))
 			}
 
-			return BadRequest(errs)
+			return BadRequest(errs...)
 		}
 
 		c.Set(key, instance)

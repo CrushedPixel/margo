@@ -5,38 +5,36 @@ import (
 	"net/http"
 )
 
+// base Response interface
 type Response interface {
 	Send(context *gin.Context)
 }
 
-type ErrorResponse struct {
-	Status int
-	Errors []*MargoError
-}
-
-func (r *ErrorResponse) Send(c *gin.Context) {
-	c.JSON(r.Status, gin.H{"errors": r.Errors})
-}
-
-type DataResponse struct {
+// Generic JSON Response
+type JSONResponse struct {
 	Status int
 	Data   interface{}
 }
 
-func (r *DataResponse) Send(c *gin.Context) {
-	c.JSON(r.Status, gin.H{"data": r.Data})
+func (r *JSONResponse) Send(c *gin.Context) {
+	c.JSON(r.Status, r.Data)
 }
 
-func BadRequest(error []*MargoError) *ErrorResponse {
-	return &ErrorResponse{
-		Status: http.StatusBadRequest,
-		Errors: error,
+// Utility methods to create responses
+func NewJSONResponse(status int, data interface{}) *JSONResponse {
+	return &JSONResponse{
+		status, data,
 	}
 }
 
-func OK(data interface{}) *DataResponse {
-	return &DataResponse{
-		Status: http.StatusOK,
-		Data: data,
-	}
+func NewErrorResponse(status int, errors ...*MargoError) *JSONResponse {
+	return NewJSONResponse(status, gin.H{"errors": errors})
+}
+
+func BadRequest(error ...*MargoError) *JSONResponse {
+	return NewErrorResponse(http.StatusBadRequest, error...)
+}
+
+func OK(data interface{}) *JSONResponse {
+	return NewJSONResponse(http.StatusOK, data)
 }
