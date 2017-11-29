@@ -42,10 +42,10 @@ func paramsValidator(params interface{}, key string, deflt binding.Binding) Hand
 			// ValidationErrors is a map[string]*FieldError
 			if ve, ok := err.(validator.ValidationErrors); ok {
 				for _, val := range ve {
-					errs = append(errs, InvalidParamsError(&val.Name, &val.ActualTag))
+					errs = append(errs, InvalidParamsError(val.Name, val.ActualTag))
 				}
 			} else {
-				errs = append(errs, InvalidParamsError(nil, nil))
+				errs = append(errs, InvalidParamsError("", ""))
 			}
 
 			return BadRequest(errs...)

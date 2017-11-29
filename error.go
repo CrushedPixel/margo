@@ -28,12 +28,13 @@ const (
 	Internal      = "INTERNAL"
 )
 
-func InvalidParamsError(field *string, validation *string) *MargoError {
-	var details string
-	if field != nil && validation != nil {
-		details = fmt.Sprintf("Invalid parameter: %s (%s)", *field, *validation)
-	} else {
-		details = "Missing parameters"
+func InvalidParamsError(field string, validation string) *MargoError {
+	details := ""
+	if field != "" {
+		details = fmt.Sprintf("Invalid parameter: %s", field)
+		if validation != "" {
+			details += fmt.Sprintf(" (%s)", validation)
+		}
 	}
 
 	return newError(http.StatusBadRequest, InvalidParams, details)
