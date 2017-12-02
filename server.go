@@ -41,14 +41,21 @@ func (s *Server) Register(e *Endpoint) (gin.IRoutes, error) {
 
 	return s.Handle(
 		e.Method, e.Path,
-		chain(handlers),
+		toGinHandler(handlers),
 	), nil
 }
 
-func chain(middleware []HandlerFunc) gin.HandlerFunc {
+// converts margo handlers into a single gin handler
+func toGinHandler(handlers []HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
+				if err, ok := r.(error); ok {
+					logInfo(fmt.Sprintf("Error handling request: %s\n", err.Error()))
+				} else {
+					logInfo(fmt.Sprintf("Error handling request: %+v\n", r))
+				}
+
 				res := NewErrorResponse(http.StatusInternalServerError, InternalServerError())
 				res.Send(c)
 			}
@@ -56,9 +63,8 @@ func chain(middleware []HandlerFunc) gin.HandlerFunc {
 
 		context := &Context{c}
 
-		for _, m := range middleware {
-
-			if response := m(context); response != nil {
+		for _, h := range handlers {
+			if response := h(context); response != nil {
 				response.Send(c)
 				return
 			}

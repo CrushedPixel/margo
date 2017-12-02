@@ -20,11 +20,25 @@ func (r *JSONResponse) Send(c *gin.Context) {
 	c.JSON(r.Status, r.Data)
 }
 
+// Empty Response only setting a status code
+type EmptyResponse struct {
+	Status int
+}
+
+func (r *EmptyResponse) Send(c *gin.Context) {
+	c.Status(r.Status)
+	c.Writer.WriteHeaderNow()
+}
+
 // Utility methods to create responses
 func NewJSONResponse(status int, data interface{}) *JSONResponse {
 	return &JSONResponse{
 		status, data,
 	}
+}
+
+func NewEmptyResponse(status int) *EmptyResponse {
+	return &EmptyResponse{status}
 }
 
 func NewErrorResponse(status int, errors ...*MargoError) *JSONResponse {

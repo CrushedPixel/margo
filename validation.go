@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"reflect"
 	"gopkg.in/go-playground/validator.v8"
+	"io"
 )
 
 type SpecificBinding interface {
@@ -45,7 +46,11 @@ func paramsValidator(params interface{}, key string, deflt binding.Binding) Hand
 					errs = append(errs, InvalidParamsError(val.Name, val.ActualTag))
 				}
 			} else {
-				errs = append(errs, InvalidParamsError("", ""))
+				if err == io.EOF {
+					errs = append(errs, MissingParamsError(key))
+				} else {
+					errs = append(errs, InvalidParamsError("", ""))
+				}
 			}
 
 			return BadRequest(errs...)
