@@ -7,7 +7,7 @@ import (
 
 // base Response interface
 type Response interface {
-	Send(context *gin.Context)
+	Send(context *gin.Context) error
 }
 
 // Generic JSON Response
@@ -16,8 +16,9 @@ type JSONResponse struct {
 	Data   interface{}
 }
 
-func (r *JSONResponse) Send(c *gin.Context) {
+func (r *JSONResponse) Send(c *gin.Context) error {
 	c.JSON(r.Status, r.Data)
+	return nil
 }
 
 // Empty Response only setting a status code
@@ -25,9 +26,10 @@ type EmptyResponse struct {
 	Status int
 }
 
-func (r *EmptyResponse) Send(c *gin.Context) {
+func (r *EmptyResponse) Send(c *gin.Context) error {
 	c.Status(r.Status)
 	c.Writer.WriteHeaderNow()
+	return nil
 }
 
 // Utility methods to create responses
