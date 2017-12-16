@@ -25,7 +25,6 @@ func (e *Endpoint) String() string {
 
 func NewEndpoint(method string, path string, handlers ...HandlerFunc) (*Endpoint) {
 	return &Endpoint{
-		Enabled:  true,
 		Method:   method,
 		Path:     path,
 		Handlers: handlers,

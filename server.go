@@ -34,11 +34,6 @@ func NewServer() *Server {
 }
 
 func (s *Server) Register(e *Endpoint) (gin.IRoutes, error) {
-	if !e.Enabled {
-		logInfo(fmt.Sprintf("Disabled endpoint %s", e.String()))
-		return nil, nil
-	}
-
 	logInfo(fmt.Sprintf("Registering endpoint %s", e.String()))
 
 	if len(e.Handlers) < 1 {
