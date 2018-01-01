@@ -10,6 +10,12 @@ type Response interface {
 	Send(context *gin.Context) error
 }
 
+type DoNothingResponse struct{}
+
+func (r *DoNothingResponse) Send(c *gin.Context) error {
+	return nil
+}
+
 // Generic JSON Response
 type JSONResponse struct {
 	Status int
@@ -45,6 +51,10 @@ func NewEmptyResponse(status int) *EmptyResponse {
 
 func NewErrorResponse(status int, errors ...*MargoError) *JSONResponse {
 	return NewJSONResponse(status, gin.H{"errors": errors})
+}
+
+func DoNothing() *DoNothingResponse {
+	return &DoNothingResponse{}
 }
 
 func BadRequest(error ...*MargoError) *JSONResponse {
