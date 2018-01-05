@@ -49,6 +49,7 @@ type fileResponse struct {
 }
 
 func (r *fileResponse) Send(c *gin.Context) error {
+	defer r.file.Close()
 	stat, err := r.file.Stat()
 	if err != nil {
 		return err
