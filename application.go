@@ -7,14 +7,14 @@ import (
 	"net/http"
 )
 
-type Server struct {
+type Application struct {
 	*gin.Engine
 	ErrorHandler ErrorHandlerFunc
 }
 
 type ErrorHandlerFunc func(context *gin.Context, r interface{})
 
-var defaultErrorHandler ErrorHandlerFunc = func(c *gin.Context, r interface{}) {
+func defaultErrorHandler(c *gin.Context, r interface{}) {
 	if err, ok := r.(error); ok {
 		logInfo(fmt.Sprintf("Error handling request: %s\n", err.Error()))
 	} else {
@@ -24,38 +24,28 @@ var defaultErrorHandler ErrorHandlerFunc = func(c *gin.Context, r interface{}) {
 	c.Status(http.StatusInternalServerError)
 }
 
-func NewServer() *Server {
+func NewServer() *Application {
 	g := gin.New()
 
-	return &Server{
+	return &Application{
 		Engine:       g,
 		ErrorHandler: defaultErrorHandler,
 	}
 }
 
-func (s *Server) Register(e *Endpoint) (gin.IRoutes, error) {
-	logInfo(fmt.Sprintf("Registering endpoint %s", e.String()))
+func (s *Application) Register(e Endpoint) gin.IRoutes {
+	logInfo(fmt.Sprintf("Registering endpoint %s %s", e.Method(), e.Path()))
 
-	if len(e.Handlers) < 1 {
-		return nil, errors.New("at least one endpoint handler required")
+	handlers := e.Handlers()
+	if len(handlers) < 1 {
+		panic(errors.New("at least one endpoint handler required"))
 	}
 
-	handlers := make([]HandlerFunc, len(e.Handlers)+2)
-	handlers[0] = queryParamsValidator(e.QueryParams)
-	handlers[1] = bodyParamsValidator(e.BodyParams)
-
-	for i := range e.Handlers {
-		handlers[2+i] = e.Handlers[i]
-	}
-
-	return s.Handle(
-		e.Method, e.Path,
-		s.toGinHandler(handlers),
-	), nil
+	return s.Handle(e.Method(), e.Path(), s.toGinHandler(e.Handlers()))
 }
 
-// converts margo handlers into a single gin handler
-func (s *Server) toGinHandler(handlers []HandlerFunc) gin.HandlerFunc {
+// toGinHandler converts a HandlerChain into a single gin.HandlerFunc
+func (s *Application) toGinHandler(handlers HandlerChain) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
