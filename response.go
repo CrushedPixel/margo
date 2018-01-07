@@ -2,9 +2,9 @@ package margo
 
 import (
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"os"
-	"io"
 	"strconv"
 )
 

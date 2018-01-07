@@ -1,9 +1,9 @@
 package margo
 
 import (
-	"net/http"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // A HandlerFunc is a function to be called when an Endpoint is accessed.
@@ -50,7 +50,7 @@ func (e *basicEndpoint) Handlers() HandlerChain {
 // with at least one HandlerFunc to be executed when the Endpoint is called.
 //
 // Panics if no HandlerFunc is provided.
-func NewEndpoint(method string, path string, handlers ...HandlerFunc) (Endpoint) {
+func NewEndpoint(method string, path string, handlers ...HandlerFunc) Endpoint {
 	if len(handlers) < 1 {
 		panic(errors.New("at least one handler function has to be provided"))
 	}
@@ -63,26 +63,26 @@ func NewEndpoint(method string, path string, handlers ...HandlerFunc) (Endpoint)
 }
 
 // GET returns a new GET Endpoint for a path and at least one HandlerFunc.
-func GET(path string, handlers ...HandlerFunc) (Endpoint) {
+func GET(path string, handlers ...HandlerFunc) Endpoint {
 	return NewEndpoint(http.MethodGet, path, handlers...)
 }
 
 // POST returns a new POST Endpoint for a path and at least one HandlerFunc.
-func POST(path string, handlers ...HandlerFunc) (Endpoint) {
+func POST(path string, handlers ...HandlerFunc) Endpoint {
 	return NewEndpoint(http.MethodPost, path, handlers...)
 }
 
 // PUT returns a new PUT Endpoint for a path and at least one HandlerFunc.
-func PUT(path string, handlers ...HandlerFunc) (Endpoint) {
+func PUT(path string, handlers ...HandlerFunc) Endpoint {
 	return NewEndpoint(http.MethodPut, path, handlers...)
 }
 
 // PATCH returns a new PATCH Endpoint for a path and at least one HandlerFunc.
-func PATCH(path string, handlers ...HandlerFunc) (Endpoint) {
+func PATCH(path string, handlers ...HandlerFunc) Endpoint {
 	return NewEndpoint(http.MethodPatch, path, handlers...)
 }
 
 // DELETE returns a new DELETE Endpoint for a path and at least one HandlerFunc.
-func DELETE(path string, handlers ...HandlerFunc) (Endpoint) {
+func DELETE(path string, handlers ...HandlerFunc) Endpoint {
 	return NewEndpoint(http.MethodDelete, path, handlers...)
 }

@@ -1,9 +1,9 @@
 package margo
 
 import (
-	"github.com/gin-gonic/gin"
-	"fmt"
 	"errors"
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
