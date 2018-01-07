@@ -55,8 +55,6 @@ func main() {
 
 Note that a `margo.Application` is merely a wrapper around `gin.Engine`, so you may use the underlying technology to its full extent.
 
-You can also create `margo.Endpoint` instances programatically and register them to an `Application` using `Endpoint(endpoint)`,
-which makes **margo** suitable for libraries that need to dynamically create endpoints.
-
-## Used by
-`margo` is used by [jargo](https://github.com/CrushedPixel/jargo), a fully-featured jsonapi web framework.
+## Additional libraries
+- [binder](https://github.com/CrushedPixel/binder) is a request binding middleware for margo.
+- [jargo](https://github.com/CrushedPixel/jargo) is a fully-featured jsonapi web framework built on top of margo.
