@@ -1,4 +1,6 @@
 # margo
+[![GoDoc](https://godoc.org/github.com/CrushedPixel/margo?status.svg)](https://godoc.org/github.com/CrushedPixel/margo) [![Go Report Card](https://goreportcard.com/badge/github.com/crushedpixel/margo)](https://goreportcard.com/report/github.com/crushedpixel/margo)
+
 A tiny framework on top of [gin](https://github.com/gin-gonic/gin).
 
 ## Motivation
