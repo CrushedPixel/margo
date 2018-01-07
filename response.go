@@ -81,6 +81,7 @@ func Empty(status int) Response {
 
 // SendFile returns a Response sending a file
 // with status code 200 OK.
+// The file is closed after sending the Response.
 func SendFile(file *os.File) Response {
 	return &fileResponse{
 		file: file,

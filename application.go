@@ -1,4 +1,3 @@
-// Package margo is a web framework providing a thin abstraction over the gin web framework.
 package margo
 
 import (
@@ -14,9 +13,9 @@ type ErrorHandlerFunc func(context *gin.Context, r interface{})
 
 func defaultErrorHandler(c *gin.Context, r interface{}) {
 	if err, ok := r.(error); ok {
-		logInfo("Error handling request: %s\n", err.Error())
+		println(fmt.Sprintf("Error handling request: %s\n", err.Error()))
 	} else {
-		logInfo("Error handling request: %+v\n", r)
+		println(fmt.Sprintf("Error handling request: %+v\n", r))
 	}
 
 	c.Status(http.StatusInternalServerError)
@@ -44,8 +43,6 @@ func NewApplication() *Application {
 
 // Endpoint exposes an Endpoint via HTTP.
 func (s *Application) Endpoint(e Endpoint) gin.IRoutes {
-	logInfo(fmt.Sprintf("Registering endpoint %s %s", e.Method(), e.Path()))
-
 	handlers := e.Handlers()
 	if len(handlers) < 1 {
 		panic(errors.New("at least one endpoint handler required"))
@@ -63,10 +60,8 @@ func (s *Application) toGinHandler(handlers HandlerChain) gin.HandlerFunc {
 			}
 		}()
 
-		context := &Context{c}
-
 		for _, h := range handlers {
-			if response := h(context); response != nil {
+			if response := h(c); response != nil {
 				err := response.Send(c)
 				if err != nil {
 					panic(err)
@@ -76,6 +71,6 @@ func (s *Application) toGinHandler(handlers HandlerChain) gin.HandlerFunc {
 		}
 
 		// if we're here, the final handler hasn't returned a value
-		panic(errors.New("endpoint must not return nil"))
+		panic(errors.New("last handler in chain must not return nil"))
 	}
 }

@@ -3,12 +3,13 @@ package margo
 import (
 	"net/http"
 	"errors"
+	"github.com/gin-gonic/gin"
 )
 
 // A HandlerFunc is a function to be called when an Endpoint is accessed.
 // If it returns a Response value, the Response is sent to the client,
 // otherwise the next handler in the chain is executed.
-type HandlerFunc func(context *Context) Response
+type HandlerFunc func(context *gin.Context) Response
 
 // A HandlerChain is a slice of handler functions to be executed in order.
 // The last HandlerFunc in the chain is expected to return a Response value.
