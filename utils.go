@@ -1,7 +1,10 @@
 package margo
 
-import "log"
+import (
+	"log"
+	"fmt"
+)
 
-func logInfo(message string) {
-	log.Printf("[margo] %s\n", message)
+func logInfo(format string, args ... interface{}) {
+	log.Printf("[margo] %s\n", fmt.Sprintf(format, args...))
 }

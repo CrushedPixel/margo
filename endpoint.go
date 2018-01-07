@@ -10,8 +10,8 @@ import (
 // otherwise the next handler in the chain is executed.
 type HandlerFunc func(context *Context) Response
 
-// A HandlerChain is a slice of handler functions
-// to be executed in order.
+// A HandlerChain is a slice of handler functions to be executed in order.
+// The last HandlerFunc in the chain is expected to return a Response value.
 type HandlerChain []HandlerFunc
 
 // An Endpoint represents an HTTP endpoint

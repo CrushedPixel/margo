@@ -1,3 +1,4 @@
+// Package margo is a web framework providing a thin abstraction over the gin web framework.
 package margo
 
 import (
@@ -7,33 +8,42 @@ import (
 	"net/http"
 )
 
-type Application struct {
-	*gin.Engine
-	ErrorHandler ErrorHandlerFunc
-}
-
+// ErrorHandlerFunc is a function handling any errors occurring during
+// execution of an Endpoint's HandlerChain.
 type ErrorHandlerFunc func(context *gin.Context, r interface{})
 
 func defaultErrorHandler(c *gin.Context, r interface{}) {
 	if err, ok := r.(error); ok {
-		logInfo(fmt.Sprintf("Error handling request: %s\n", err.Error()))
+		logInfo("Error handling request: %s\n", err.Error())
 	} else {
-		logInfo(fmt.Sprintf("Error handling request: %+v\n", r))
+		logInfo("Error handling request: %+v\n", r)
 	}
 
 	c.Status(http.StatusInternalServerError)
 }
 
-func NewServer() *Application {
-	g := gin.New()
+// An Application is a thin wrapper around a gin.Engine,
+// providing additional utility methods.
+type Application struct {
+	*gin.Engine
+	// ErrorHandler is the ErrorHandlerFunc called when
+	// a HandlerFunc in an Endpoint's HandlerChain
+	// panics, or sending a Response returns an error.
+	ErrorHandler ErrorHandlerFunc
+}
 
+// NewApplication returns a new Application with
+// the underlying gin.Engine being initialized using gin.New()
+// and the default error handler.
+func NewApplication() *Application {
 	return &Application{
-		Engine:       g,
+		Engine:       gin.New(),
 		ErrorHandler: defaultErrorHandler,
 	}
 }
 
-func (s *Application) Register(e Endpoint) gin.IRoutes {
+// Endpoint exposes an Endpoint via HTTP.
+func (s *Application) Endpoint(e Endpoint) gin.IRoutes {
 	logInfo(fmt.Sprintf("Registering endpoint %s %s", e.Method(), e.Path()))
 
 	handlers := e.Handlers()
@@ -66,6 +76,6 @@ func (s *Application) toGinHandler(handlers HandlerChain) gin.HandlerFunc {
 		}
 
 		// if we're here, the final handler hasn't returned a value
-		panic("Endpoint must not return nil")
+		panic(errors.New("endpoint must not return nil"))
 	}
 }
