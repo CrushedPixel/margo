@@ -1,82 +1,62 @@
 # margo
-A small but useful wrapper library around [gin](https://github.com/gin-gonic/gin).
+[![GoDoc](https://godoc.org/github.com/CrushedPixel/margo?status.svg)](https://godoc.org/github.com/CrushedPixel/margo) [![Go Report Card](https://goreportcard.com/badge/github.com/crushedpixel/margo)](https://goreportcard.com/report/github.com/crushedpixel/margo)
+
+A tiny framework on top of [gin](https://github.com/gin-gonic/gin).
 
 ## Motivation
-**gin** is an amazing framework, but when writing handler functions and middleware one quickly gets lost outputting 
-data to the user.
+**gin** is an amazing framework, but when writing handler functions and middleware it is easy to get confused
+keeping track where headers are set and data is written to the response.
 
 **margo** solves this by having its handler functions return an object implementing the `Response` interface, 
-whose `send` method is responsible for transmitting data to the client.
+whose `Send` method is responsible for transmitting data to the client.
 
-Additionally, **margo** comes with built-in middleware binding query and body parameters into the context, 
-reducing manual parameter validation to a minimum.  
-
-Here's a comparison:
+## Example usage
 ```go
-type ExampleQueryParams struct {
-	// binding:"required" ensures the parameter is set (go-playground/validator.v8)
-	Message string `form:"message" binding:"required"`
+type errorResponse struct {
+    err error
 }
 
-func usingMargo() {
-	s := margo.NewServer()
-
-	endpoint := margo.GetEndpoint("/", func(context *margo.Context) margo.Response {
-		qp := context.GetQueryParams().(*ExampleQueryParams)
-
-		if qp.Message == "Hello World" {
-			return margo.BadRequest(margo.InvalidParamsError("message", "too uncreative"))
-		}
-
-		return margo.OK(gin.H{
-			"message": qp.Message,
-		})
-	})
-
-	// register ExampleQueryParams struct for binding to this endpoint
-	endpoint.QueryParams = ExampleQueryParams{}
-
-	// register endpoint to server
-	s.Register(endpoint)
-
-	s.Run("127.0.0.1:8080")
+// satisfies margo.Response
+func (r *errorResponse) Send(context *gin.Context) error {
+    context.String(http.StatusInternalServerError, "an internal server error occurred: %s", r.err.Error())
+    return nil
 }
 
-func usingGin() {
-	s := gin.Default()
-
-	s.GET("/", func(c *gin.Context) {
-		qp := &ExampleQueryParams{}
-		if err := c.BindQuery(qp); err != nil {
-			// TODO: parse error object, construct some pretty error response
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "missing parameter: 'message'",
-			})
-			return
-		}
-
-		if qp.Message == "Hello World" {
-			// TODO: create consistent error output
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "parameter 'message' is too uncreative",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"message": qp.Message,
-		})
-	})
-
-	s.Run("127.0.0.1:8080")
+func newErrorResponse(err error) margo.Response {
+    return &errorResponse{
+        err: err,
+    }
 }
 
+func main() {
+    // create new Application instance
+    app := margo.NewApplication()
+
+    // create endpoint handling the index route
+    endpoint := margo.GET("/", func(context *gin.Context) margo.Response {
+        // handle the request however you wish, for example
+        // parse some request parameters
+        params, err := parseQueryParams(context)
+        if err != nil {
+            // handle the error however you like,
+            // for example by returning a generic error response
+            // which implements margo.Response
+            return newErrorResponse(err)
+        }
+
+        // do something with the retrieved params,
+        // for example output them as json using
+        // the builtin JSON function
+        return margo.JSON(http.StatusOK, params)
+    })
+    app.Endpoint(endpoint) // register endpoint with Application
+
+    app.Run(":8080") // run application
+}
 ```
 
-Note that a `margo.Server` is merely a wrapper around `gin.Engine`, so you may use the underlying technology to its full extent.
+Note that a `margo.Application` is merely a wrapper around `gin.Engine`, so you may use the underlying technology to its full extent.
 
-You can also create `margo.Endpoint` structs programatically and register them to the server using `s.Register(endpoint)`,
-which makes **margo** suitable for libraries that need to dynamically create endpoints.
-
-## Outlook
-I plan on using `margo` as the base for a larger web framework, therefore the API may be subject to improvements.
+## Additional libraries
+- [binder](https://github.com/CrushedPixel/binder) is a request binding middleware for margo.
+- [jargo](https://github.com/CrushedPixel/jargo) is a fully-featured jsonapi web framework built on top of margo.
