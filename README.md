@@ -1,12 +1,12 @@
 # margo
-A small but useful wrapper library around [gin](https://github.com/gin-gonic/gin).
+A small web framework wrapping [gin](https://github.com/gin-gonic/gin).
 
 ## Motivation
 **gin** is an amazing framework, but when writing handler functions and middleware one quickly gets lost outputting 
 data to the user.
 
 **margo** solves this by having its handler functions return an object implementing the `Response` interface, 
-whose `send` method is responsible for transmitting data to the client.
+whose `Send` method is responsible for transmitting data to the client.
 
 Additionally, **margo** comes with built-in middleware binding query and body parameters into the context, 
 reducing manual parameter validation to a minimum.  
@@ -19,10 +19,10 @@ type ExampleQueryParams struct {
 }
 
 func usingMargo() {
-	s := margo.NewServer()
+	a := margo.NewApplication()
 
-	endpoint := margo.GetEndpoint("/", func(context *margo.Context) margo.Response {
-		qp := context.GetQueryParams().(*ExampleQueryParams)
+	endpoint := margo.NewBindingEndpoint("/", func(context *margo.Context) margo.Response {
+		qp := context.QueryParams().(*ExampleQueryParams)
 
 		if qp.Message == "Hello World" {
 			return margo.BadRequest(margo.InvalidParamsError("message", "too uncreative"))
@@ -31,15 +31,12 @@ func usingMargo() {
 		return margo.OK(gin.H{
 			"message": qp.Message,
 		})
-	})
+	}).SetQueryParamsModel(ExampleQueryParams{}) // register ExampleQueryParams struct for binding to this endpoint
 
-	// register ExampleQueryParams struct for binding to this endpoint
-	endpoint.QueryParams = ExampleQueryParams{}
-
-	// register endpoint to server
-	s.Register(endpoint)
-
-	s.Run("127.0.0.1:8080")
+	// register endpoint with application
+	a.Endpoint(endpoint)
+	
+	a.Run("127.0.0.1:8080")
 }
 
 func usingGin() {
@@ -73,10 +70,10 @@ func usingGin() {
 
 ```
 
-Note that a `margo.Server` is merely a wrapper around `gin.Engine`, so you may use the underlying technology to its full extent.
+Note that a `margo.Application` is merely a wrapper around `gin.Engine`, so you may use the underlying technology to its full extent.
 
-You can also create `margo.Endpoint` structs programatically and register them to the server using `s.Register(endpoint)`,
+You can also create `margo.Endpoint` structs programatically and register them to the server using `s.Endpoint(endpoint)`,
 which makes **margo** suitable for libraries that need to dynamically create endpoints.
 
-## Outlook
-I plan on using `margo` as the base for a larger web framework, therefore the API may be subject to improvements.
+## Used by
+`margo` is used by [jargo](https://github.com/CrushedPixel/jargo), a fully-featured jsonapi web framework.
