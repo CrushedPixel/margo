@@ -6,15 +6,6 @@ import (
 	"net/http"
 )
 
-// A HandlerFunc is a function to be called when an Endpoint is accessed.
-// If it returns a Response value, the Response is sent to the client,
-// otherwise the next handler in the chain is executed.
-type HandlerFunc func(context *gin.Context) Response
-
-// A HandlerChain is a slice of handler functions to be executed in order.
-// The last HandlerFunc in the chain is expected to return a Response value.
-type HandlerChain []HandlerFunc
-
 // An Endpoint represents an HTTP endpoint
 // that can be registered to an Application.
 type Endpoint interface {
@@ -85,4 +76,39 @@ func PATCH(path string, handlers ...HandlerFunc) Endpoint {
 // DELETE returns a new DELETE Endpoint for a path and at least one HandlerFunc.
 func DELETE(path string, handlers ...HandlerFunc) Endpoint {
 	return NewEndpoint(http.MethodDelete, path, handlers...)
+}
+
+// A HandlerFunc is a function to be called when an Endpoint is accessed.
+type HandlerFunc func(context *gin.Context) Response
+
+// A HandlerChain is a slice of handler functions to be executed in order.
+// If a HandlerFunc returns a Response value, the Response is sent to the client,
+// otherwise, the next HandlerFunc in the chain is executed.
+// The last HandlerFunc in the chain is expected to return a Response value.
+type HandlerChain []HandlerFunc
+
+// ToGinHandler converts a HandlerChain into a single gin.HandlerFunc.
+// If any of the chain's handlers panic or Response.Send returns an error,
+// the error handler is invoked.
+func (chain HandlerChain) ToGinHandler(errorHandler ErrorHandlerFunc) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if r := recover(); r != nil {
+				errorHandler(c, r)
+			}
+		}()
+
+		for _, h := range chain {
+			if response := h(c); response != nil {
+				err := response.Send(c)
+				if err != nil {
+					panic(err)
+				}
+				return
+			}
+		}
+
+		// if we're here, the final handler hasn't returned a value
+		panic(errors.New("last handler in chain must not return nil"))
+	}
 }

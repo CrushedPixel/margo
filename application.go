@@ -48,29 +48,5 @@ func (s *Application) Endpoint(e Endpoint) gin.IRoutes {
 		panic(errors.New("at least one endpoint handler required"))
 	}
 
-	return s.Handle(e.Method(), e.Path(), s.toGinHandler(e.Handlers()))
-}
-
-// toGinHandler converts a HandlerChain into a single gin.HandlerFunc
-func (s *Application) toGinHandler(handlers HandlerChain) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		defer func() {
-			if r := recover(); r != nil {
-				s.ErrorHandler(c, r)
-			}
-		}()
-
-		for _, h := range handlers {
-			if response := h(c); response != nil {
-				err := response.Send(c)
-				if err != nil {
-					panic(err)
-				}
-				return
-			}
-		}
-
-		// if we're here, the final handler hasn't returned a value
-		panic(errors.New("last handler in chain must not return nil"))
-	}
+	return s.Handle(e.Method(), e.Path(), e.Handlers().ToGinHandler(s.ErrorHandler))
 }
