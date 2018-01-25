@@ -59,6 +59,16 @@ func (r *fileResponse) Send(c *gin.Context) error {
 	return nil
 }
 
+type redirectResponse struct {
+	code     int
+	location string
+}
+
+func (r *redirectResponse) Send(c *gin.Context) error {
+	c.Redirect(r.code, r.location)
+	return nil
+}
+
 // JSON returns a Response sending json-encoded data
 // with the specified status code.
 func JSON(status int, data interface{}) Response {
@@ -85,5 +95,14 @@ func Empty(status int) Response {
 func SendFile(file *os.File) Response {
 	return &fileResponse{
 		file: file,
+	}
+}
+
+// Redirect returns a Response redirecting
+// the client to a given location with the given status code.
+func Redirect(code int, location string) Response {
+	return &redirectResponse{
+		code:     code,
+		location: location,
 	}
 }
